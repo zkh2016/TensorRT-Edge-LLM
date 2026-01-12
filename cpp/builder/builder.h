@@ -393,6 +393,7 @@ private:
     //! @param network TensorRT network definition for input analysis
     //! @return true if setup was successful, false otherwise
     bool setupQwenViTProfile(nvinfer1::IOptimizationProfile* profile, nvinfer1::INetworkDefinition const* network);
+    bool setupMiniCPMViTProfile(nvinfer1::IOptimizationProfile* profile, nvinfer1::INetworkDefinition const* network);
 
     //! Set up optimization profile for InternVL or Phi4-MM ViT models.
     //! Configures inputs for InternVL or Phi4-MM visual encoders.

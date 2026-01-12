@@ -229,6 +229,27 @@ inline constexpr char const* kFastPosEmbWeight = "fast_pos_embed_weight";
  */
 inline constexpr char const* kDeepstackFeaturesTemplate = "deepstack_features";
 
+/*!
+ * @brief pixel values tensor for MiniCPMV4_5 vision model
+ *
+ * Shape: [1, 3, 14, 14*1024] (FLOAT16)
+ */
+inline constexpr char const* kPixelValues= "pixel_values";
+
+/*!
+ * @brief position embeddings of vpm weight tensor for MiniCPMV4_5 vision model
+ *
+ * Shape: [1,1024, 1152] (FLOAT16)
+ */
+inline constexpr char const* kPositionEmbeddingVPM= "position_embedding_vpm";
+
+/*!
+ * @brief position embeddings of resampler weight tensor for MiniCPMV4_5 vision model
+ *
+ * Shape: [1024, 1, 4096] (FLOAT16)
+ */
+inline constexpr char const* kPositionEmbeddingResampler = "position_embedding_resampler";
+
 /*! @} */
 
 /*! @name Vocabulary Mapping Configuration

@@ -39,6 +39,9 @@ from tensorrt_edgellm.visual_models.qwen2_vl_model import (
 from tensorrt_edgellm.visual_models.qwen3_vl_model import (
     Qwen3VLVisionModelPatch, export_qwen3_vl_visual)
 
+from tensorrt_edgellm.visual_models.minicpmv4_5_vl_model import (
+    EmbVpmResampler, export_minicpmv4_5_visual, SiglipVisionTransformer, Resampler)
+
 from ..llm_models.model_utils import load_hf_model
 from .config_export import export_vision_config
 
@@ -172,6 +175,31 @@ def visual_export(model_dir: str,
                                             processor.image_processor,
                                             dataset_dir)
         export_phi4mm_visual(wrapped_model, output_dir, torch_dtype)
+    elif model_type == 'minicpmv' and model.config.version == 4.5:
+        print(f"Exporting MiniCPMV4_5 visual model from {model_dir}")
+        # Create MiniCPMV4_5 wrapper model
+        vision_config = model.config.vision_config
+        vpm = SiglipVisionTransformer(vision_config).to(model.dtype)
+        vpm.load_state_dict(model.vpm.state_dict(), strict=False)
+        vpm.to(model.device)
+        resampler = Resampler(
+            num_queries=model.config.query_num,
+            embed_dim=model.config.hidden_size,
+            num_heads=model.config.hidden_size // 128,
+            kv_dim=vision_config.hidden_size,
+            adaptive=True
+        ).to(model.dtype)
+        wrapped_model = EmbVpmResampler(vpm=vpm, resampler=resampler, config=model.config)
+        wrapped_model.eval().to(model.device)
+
+        # Apply quantization to wrapped model if requested
+        if quantization == "fp8":
+            wrapped_model = quantize_visual(wrapped_model, quantization,
+                                            processor.image_processor,
+                                            dataset_dir)
+
+        # Export using the wrapper's export function
+        export_minicpmv4_5_visual(wrapped_model, output_dir, torch_dtype)
     else:
         raise ValueError(f"Unsupported model type: {model_type}")
 

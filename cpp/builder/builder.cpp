@@ -1061,6 +1061,10 @@ bool VisualBuilder::setupVisualOptimizationProfile(
     {
         result = setupInternPhi4ViTProfile(visualProfile);
     }
+    else if(mModelType == multimodal::ModelType::MINICPMV4_5)
+    {
+        result = setupMiniCPMViTProfile(visualProfile, network);
+    }
     if (!result)
     {
         LOG_ERROR("Failed to setup optimization profile");
@@ -1141,6 +1145,64 @@ bool VisualBuilder::setupQwenViTProfile(
     if (!result)
     {
         LOG_ERROR("Failed to setup optimization profile at setupQwenViTProfile().");
+    }
+
+    return result;
+}
+
+bool VisualBuilder::setupMiniCPMViTProfile(
+    nvinfer1::IOptimizationProfile* profile, nvinfer1::INetworkDefinition const* network)
+{
+    bool result = true;
+
+    // In Qwen-VL, HW is always 4ximageTokens because it equals to spatial_merge_size ** 2.
+    LOG_INFO("minImageTokens: %d, maxImageTokens: %d", mBuilderConfig.minImageTokens, mBuilderConfig.maxImageTokens);
+
+    // int64_t minHW = mBuilderConfig.inImageTokens * 4;
+    // int64_t maxHW = mBuilderConfig.maxImageTokens * 4;
+    // int64_t optHW = (mBuilderConfig.minImageTokens + mBuilderConfig.maxImageTokens) / 2 * 4;
+
+    // Infer dimensions from the network
+    // int batch = 1;
+    // int64_t inputDim = 0;
+    // int64_t ropeEmbedSize = 0;
+
+    // for (int32_t i = 0; i < network->getNbInputs(); ++i)
+    // {
+    //     auto* input = network->getInput(i);
+    //     if (strcmp(input->getName(), binding_names::kPixelValues) == 0)
+    //     {
+    //         inputDim = input->getDimensions().d[1];
+    //     }
+    //     else if (strcmp(input->getName(), binding_names::kRotaryPosEmb) == 0)
+    //     {
+    //         ropeEmbedSize = input->getDimensions().d[1];
+    //     }
+    // }
+
+    // if (inputDim == 0)
+    // {
+    //     LOG_ERROR("Cannot infer inputDim. Do you have proper ONNX input: %s?", binding_names::kVisualInput);
+    //     return false;
+    // }
+
+    // if (ropeEmbedSize == 0)
+    // {
+    //     LOG_ERROR("Cannot infer ropeEmbedSize. Do you have proper ONNX input: %s?", binding_names::kRotaryPosEmb);
+    //     return false;
+    // }
+
+    // Base inputs
+    result &= setOptimizationProfile(profile, binding_names::kPixelValues, createDims({1, 3, 14, 14*1024}),
+        createDims({1, 3, 14, 14*1024}), createDims({1, 3, 14, 14*1024}));
+    result &= setOptimizationProfile(profile, binding_names::kPositionEmbeddingVPM, createDims({1,1024, 1152}),
+        createDims({1,1024, 1152}), createDims({1,1024, 1152}));
+    result &= setOptimizationProfile(profile, binding_names::kPositionEmbeddingResampler, createDims({1024, 1, 4096}),
+        createDims({1024, 1, 4096}), createDims({1024, 1, 4096}));
+
+    if (!result)
+    {
+        LOG_ERROR("Failed to setup optimization profile at setupMiniCPMViTProfile().");
     }
 
     return result;

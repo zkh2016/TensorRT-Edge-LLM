@@ -32,6 +32,7 @@ enum class ModelType
     QWEN3_VL,   //!< Qwen3-VL model
     INTERNVL,   //!< InternVL model
     PHI4MM,     //!< Phi-4MM model
+    MINICPMV4_5, //!< MiniCPMV4_5-VL model
     UNKNOWN     //!< Unknown or unsupported model type
 };
 
@@ -50,6 +51,8 @@ inline ModelType stringToModelType(std::string const& modelTypeStr)
         return ModelType::INTERNVL;
     if (modelTypeStr == "phi4mm")
         return ModelType::PHI4MM;
+    if (modelTypeStr == "siglip_vision_model")
+        return ModelType::MINICPMV4_5;
     return ModelType::UNKNOWN;
 }
 
