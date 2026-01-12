@@ -226,12 +226,18 @@ class EdgeLLMModelForCausalLM(nn.Module):
             if hasattr(hf_model, 'language_model'):
                 language_model = hf_model.language_model
                 self.config = hf_model.config.text_config
+            elif hf_model.config.model_type == "minicpmv":
+                language_model = hf_model.llm.model 
+                self.config = hf_model.config
             else:
                 # Phi4MM uses the model.model attribute instead of language_model
                 language_model = hf_model.model
                 self.config = hf_model.config
             if hasattr(hf_model.config, "quantization_config"):
                 self.config.quantization_config = hf_model.config.quantization_config
+        elif hf_model.config.model_type == "minicpmv":
+            language_model = hf_model.llm.model 
+            self.config = hf_model.config
         else:
             language_model = hf_model.model
             self.config = hf_model.config
@@ -253,7 +259,10 @@ class EdgeLLMModelForCausalLM(nn.Module):
                                           vocab_map)
         else:
             # Keep the original lm_head
-            self.lm_head = hf_model.lm_head
+            if hf_model.config.model_type == "minicpmv":
+                self.lm_head = hf_model.llm.lm_head
+            else:   
+                self.lm_head = hf_model.lm_head
 
         self.is_eagle_base = is_eagle_base
 
